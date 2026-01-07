@@ -6,3 +6,5 @@ run/
 *.iml
 out/
 *.hprof
+*.bin
+*.lock
