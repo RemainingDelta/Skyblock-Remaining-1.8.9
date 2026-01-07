@@ -8,3 +8,6 @@ out/
 *.hprof
 *.bin
 *.lock
+.DS_Store
+.idea/
+local.properties
