@@ -11,3 +11,4 @@ out/
 .DS_Store
 .idea/
 local.properties
+.env
