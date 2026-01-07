@@ -6,14 +6,13 @@ import java.util.Properties;
 
 /**
  * Manages the API keys including hypixel api key, and minecraft UUID.
+ * Load the env when the class is loaded.
  */
 public class ApiKeyManager {
   private static String hypixelApiKey;
   private static String uuid;
 
-  /**
-   * Load the env when the class is loaded.
-   */
+
   static {
     loadEnv();
   }

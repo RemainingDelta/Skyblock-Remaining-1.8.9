@@ -1,10 +1,12 @@
 package com.remainingdelta.skyblockremaining; // UPDATED THIS LINE
 
+import com.remainingdelta.skyblockremaining.commands.TestCommand;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -23,7 +25,7 @@ public class SkyblockRemaining {
   @Mod.EventHandler
   public void init(FMLInitializationEvent event) {
     MinecraftForge.EVENT_BUS.register(this);
-
+    ClientCommandHandler.instance.registerCommand(new TestCommand());
     todoList.add(new ComposterTracker());
 
     System.out.println("Skyblock Remaining initialized!");
@@ -31,7 +33,7 @@ public class SkyblockRemaining {
 
   @SubscribeEvent
   public void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
-    Minecraft.getMinecraft().thePlayer.addChatMessage(
+    event.player.addChatMessage(
         new ChatComponentText(EnumChatFormatting.GOLD + "[Skyblock Remaining] " + EnumChatFormatting.GREEN + "Mod Loaded!")
     );
   }
