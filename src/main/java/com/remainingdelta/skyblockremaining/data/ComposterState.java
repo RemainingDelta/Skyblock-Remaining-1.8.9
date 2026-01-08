@@ -1,5 +1,7 @@
 package com.remainingdelta.skyblockremaining.data;
 
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
 /**
  * Holds the state of the Composter.
  */
@@ -17,6 +19,6 @@ public class ComposterState {
    */
   @Override
   public String toString() {
-    return ("Matter: " + this.organicMatter + ", Fuel: " + this.fuel);
+    return ("Matter: " + this.organicMatter + "| Fuel: " + this.fuel);
   }
 }

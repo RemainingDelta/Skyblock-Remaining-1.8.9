@@ -1,24 +1,21 @@
 package com.remainingdelta.skyblockremaining;
 
 /**
- * Represents a todo item in skyblock.
+ * Interface for the todo item.
  */
-public abstract class TodoItem {
-  private String name;
+public interface TodoItem {
 
   /**
-   * Constructor of TodoItem which takes in a name.
+   * Gets the display name of the todo item.
    *
-   * @param name represents the name of the todo item
+   * @return the display name of the todo item
    */
-  public TodoItem(String name) {
-    this.name = name;
-  }
+  public String getName();
 
   /**
    * Gets the current status of the todo item.
    *
    * @return the current status of the todo item
    */
-  public abstract String getStatus();
+  public String getStatus();
 }
