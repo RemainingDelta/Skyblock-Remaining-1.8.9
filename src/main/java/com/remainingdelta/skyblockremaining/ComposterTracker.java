@@ -19,6 +19,10 @@ public class ComposterTracker extends AbstractTodoItem {
   private static final Pattern composterPattern = Pattern.compile(
       "(Organic Matter|Fuel):\\s*([\\d\\.]+)([kM]?)");
 
+  private static final double BASE_MATTER_COST = 4000.0;
+  private static final double BASE_FUEL_COST = 2000.0;
+  private static final double BASE_TIME = 600.0;
+
 
   /**
    * Constructor of Composter Tracker which takes in nothing.
@@ -34,7 +38,7 @@ public class ComposterTracker extends AbstractTodoItem {
    */
   @Override
   public String getStatus() {
-    return ComposterDataManager.instance.load().toString();
+    return calculateTimeRemaining(ComposterDataManager.instance.load());
   }
 
   @SubscribeEvent
@@ -83,6 +87,7 @@ public class ComposterTracker extends AbstractTodoItem {
     if (foundData) {
       composterstate.lastTimestamp = System.currentTimeMillis();
       ComposterDataManager.instance.save(composterstate);
+      System.out.println("COMP_TEST: Updated! Time Remaining: " + calculateTimeRemaining(composterstate));
     }
   }
 
@@ -97,5 +102,33 @@ public class ComposterTracker extends AbstractTodoItem {
     } catch (NumberFormatException e) {
       return 0;
     }
+  }
+
+  private String formatTime(double totalSeconds) {
+    if (totalSeconds <= 0) {
+      return "INACTIVE";
+    }
+    int hours = (int) totalSeconds / 3600;
+    int minutes = (int) (totalSeconds % 3600) / 60;
+    int seconds = (int) totalSeconds % 60;
+    return String.format("%d:%02d:%02d", hours, minutes, seconds);
+  }
+
+  private String calculateTimeRemaining(ComposterState state) {
+    double speedMultiplier = 1 + (state.speedLevel * 0.2);
+    double costReductionMultiplier = 1 - (state.costLevel * 0.1);
+
+    double timePerCompost = BASE_TIME / speedMultiplier;
+    double matterCost = BASE_MATTER_COST * costReductionMultiplier;
+    double fuelCost = BASE_FUEL_COST * costReductionMultiplier;
+
+
+    double totalMatterTime = (state.organicMatter / matterCost) * timePerCompost;
+    double totalFuelTime = (state.fuel / fuelCost) * timePerCompost;
+
+    double minTime = Math.min(totalMatterTime, totalFuelTime);
+
+    double timeElapsed = (System.currentTimeMillis() - state.lastTimestamp) / 1000.0;
+    return formatTime(minTime - timeElapsed);
   }
 }

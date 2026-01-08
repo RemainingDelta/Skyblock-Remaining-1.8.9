@@ -19,14 +19,15 @@ public class SkyblockRemaining {
   public static final String VERSION = "1.0";
 
   public static boolean enabled = true;
-  public static List<AbstractTodoItem> todoList = new ArrayList<AbstractTodoItem>();
+  public static List<TodoItem> todoList = new ArrayList<TodoItem>();
 
   @Mod.EventHandler
   public void init(FMLInitializationEvent event) {
     MinecraftForge.EVENT_BUS.register(this);
     ClientCommandHandler.instance.registerCommand(new TestCommand());
-    todoList.add(new ComposterTracker());
-
+    ComposterTracker composter = new ComposterTracker();
+    todoList.add(composter);
+    MinecraftForge.EVENT_BUS.register(composter);
     System.out.println("Skyblock Remaining initialized!");
   }
 
