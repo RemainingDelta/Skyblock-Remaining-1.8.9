@@ -16,6 +16,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
  */
 public class ComposterTracker extends AbstractTodoItem {
   private int tickCounter = 0;
+  private ComposterState cachedState;
   private static final Pattern composterPattern = Pattern.compile(
       "(Organic Matter|Fuel):\\s*([\\d\\.]+)([kM]?)");
 
@@ -29,6 +30,7 @@ public class ComposterTracker extends AbstractTodoItem {
    */
   public ComposterTracker() {
     super("Composter");
+    this.cachedState = ComposterDataManager.instance.load();
   }
 
   /**
@@ -38,7 +40,7 @@ public class ComposterTracker extends AbstractTodoItem {
    */
   @Override
   public String getStatus() {
-    return calculateTimeRemaining(ComposterDataManager.instance.load());
+    return calculateTimeRemaining(this.cachedState);
   }
 
   @SubscribeEvent
@@ -47,7 +49,7 @@ public class ComposterTracker extends AbstractTodoItem {
       return;
     }
     this.tickCounter++;
-    if (this.tickCounter < 20) {
+    if (this.tickCounter < 60) {
       return;
     }
     this.tickCounter = 0;
@@ -62,7 +64,8 @@ public class ComposterTracker extends AbstractTodoItem {
   private void parseTabList(Minecraft minecraft) {
     Collection<NetworkPlayerInfo> tabListData = minecraft.getNetHandler().getPlayerInfoMap();
     boolean foundData = false;
-    ComposterState composterstate = ComposterDataManager.instance.load();
+    double previousOrganic = this.cachedState.organicMatter;
+    double previousFuel = this.cachedState.fuel;
     for (NetworkPlayerInfo playerInfo : tabListData) {
       IChatComponent displayName = playerInfo.getDisplayName();
       if (displayName == null) {
@@ -76,18 +79,20 @@ public class ComposterTracker extends AbstractTodoItem {
         String suffix = matcher.group(3);
         double value = parseValue(numberStr, suffix);
         if (type.contains("Organic Matter")) {
-          composterstate.organicMatter = value;
+          this.cachedState.organicMatter = value;
           foundData = true;
         } else if (type.contains("Fuel")) {
-          composterstate.fuel = value;
+          this.cachedState.fuel = value;
           foundData = true;
         }
       }
     }
     if (foundData) {
-      composterstate.lastTimestamp = System.currentTimeMillis();
-      ComposterDataManager.instance.save(composterstate);
-      System.out.println("COMP_TEST: Updated! Time Remaining: " + calculateTimeRemaining(composterstate));
+      if (this.cachedState.organicMatter != previousOrganic || this.cachedState.fuel != previousFuel) {
+        this.cachedState.lastTimestamp = System.currentTimeMillis();
+        ComposterDataManager.instance.save(this.cachedState);
+        System.out.println("COMP_TEST: Updated! Time Remaining: " + calculateTimeRemaining(this.cachedState));
+      }
     }
   }
 
@@ -109,14 +114,13 @@ public class ComposterTracker extends AbstractTodoItem {
       return "INACTIVE";
     }
     int hours = (int) totalSeconds / 3600;
-    int minutes = (int) (totalSeconds % 3600) / 60;
-    int seconds = (int) totalSeconds % 60;
-    return String.format("%d:%02d:%02d", hours, minutes, seconds);
+    int minutes = (int) (totalSeconds % 3600) / 60 + 1;
+    return String.format("%d:%02d:", hours, minutes);
   }
 
   private String calculateTimeRemaining(ComposterState state) {
     double speedMultiplier = 1 + (state.speedLevel * 0.2);
-    double costReductionMultiplier = 1 - (state.costLevel * 0.1);
+    double costReductionMultiplier = 1 - (state.costLevel * 0.01);
 
     double timePerCompost = BASE_TIME / speedMultiplier;
     double matterCost = BASE_MATTER_COST * costReductionMultiplier;
