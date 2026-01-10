@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetworkPlayerInfo;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -149,15 +150,17 @@ public class ComposterTracker extends AbstractTodoItem {
 
   private String formatTime(double totalSeconds) {
     if (totalSeconds <= 0) {
-      return "INACTIVE";
+      return EnumChatFormatting.RED + "INACTIVE";
     }
     int hours = (int) totalSeconds / 3600;
     int minutes = (int) (totalSeconds % 3600) / 60 + 1;
-    return String.format("%dh%02dm", hours, minutes);
+    return EnumChatFormatting.WHITE + String.format("%dh%02dm", hours, minutes);
   }
 
   private String calculateTimeRemaining(ComposterState state) {
-    if (state.isInactive) return "INACTIVE";
+    if (state.isInactive) {
+      return EnumChatFormatting.RED + "INACTIVE";
+    }
 
     double speedMultiplier = 1 + (state.speedLevel * 0.2);
     double costReductionMultiplier = 1 - (state.costLevel * 0.01);
