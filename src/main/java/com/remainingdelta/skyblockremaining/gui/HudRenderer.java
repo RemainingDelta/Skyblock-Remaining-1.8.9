@@ -5,6 +5,9 @@ import com.remainingdelta.skyblockremaining.TodoItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -29,6 +32,11 @@ public class HudRenderer extends Gui {
     if (event.type != RenderGameOverlayEvent.ElementType.TEXT) {
       return;
     }
+
+    if (!isOnSkyblock()) {
+      return;
+    }
+
     Minecraft mc = Minecraft.getMinecraft();
     List<TodoItem> list = SkyblockRemaining.todoList;
     if (list.isEmpty()) return;
@@ -83,5 +91,27 @@ public class HudRenderer extends Gui {
 
       currentY += lineHeight;
     }
+  }
+
+  /**
+   * Checks if the player is currently on Hypixel Skyblock by looking at the sidebar scoreboard
+   * title.
+   */
+  private boolean isOnSkyblock() {
+    Minecraft mc = Minecraft.getMinecraft();
+    if (mc.theWorld == null || mc.thePlayer == null) {
+      return false;
+    }
+    Scoreboard scoreboard = mc.theWorld.getScoreboard();
+    if (scoreboard == null) {
+      return false;
+    }
+    ScoreObjective objective = scoreboard.getObjectiveInDisplaySlot(1);
+    if (objective == null) {
+      return false;
+    }
+    String title = objective.getDisplayName();
+    String cleanTitle = EnumChatFormatting.getTextWithoutFormattingCodes(title);
+    return cleanTitle != null && cleanTitle.toUpperCase().contains("SKYBLOCK");
   }
 }
