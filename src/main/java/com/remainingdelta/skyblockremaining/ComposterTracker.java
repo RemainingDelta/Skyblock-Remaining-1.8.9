@@ -38,10 +38,10 @@ public class ComposterTracker extends AbstractTodoItem {
    * Constructor of Composter Tracker which takes in nothing.
    */
   public ComposterTracker() {
-    super("Composter");
+    super("Composter", "textures/icons/composter.png");
     instance = this;
     this.cachedState = ComposterDataManager.instance.load();
-    scheduler.scheduleAtFixedRate(this::fetchComposterData, 5, 5, TimeUnit.MINUTES);
+    this.scheduler.scheduleAtFixedRate(this::fetchComposterData, 5, 5, TimeUnit.MINUTES);
   }
 
   /**

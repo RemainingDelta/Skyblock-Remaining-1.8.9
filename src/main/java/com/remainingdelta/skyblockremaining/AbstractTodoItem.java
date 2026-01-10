@@ -1,17 +1,22 @@
 package com.remainingdelta.skyblockremaining;
 
+import net.minecraft.util.ResourceLocation;
+
 /**
  * Represents a todo item in skyblock.
  */
 public abstract class AbstractTodoItem implements TodoItem {
-  private String name;
+  protected String name;
+  protected ResourceLocation icon;
+
   /**
    * Constructor of TodoItem which takes in a name.
    *
    * @param name represents the name of the todo item
    */
-  public AbstractTodoItem(String name) {
+  public AbstractTodoItem(String name, String iconLocation) {
     this.name = name;
+    this.icon = new ResourceLocation("skyblockremaining", iconLocation);
   }
 
   /**
@@ -23,4 +28,10 @@ public abstract class AbstractTodoItem implements TodoItem {
   public String getName() {
     return this.name;
   }
+
+  @Override
+  public ResourceLocation getIcon() {
+    return this.icon;
+  }
+
 }
