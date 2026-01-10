@@ -1,4 +1,4 @@
-package com.remainingdelta.skyblockremaining; // UPDATED THIS LINE
+package com.remainingdelta.skyblockremaining;
 
 import com.remainingdelta.skyblockremaining.commands.TestCommand;
 import java.util.ArrayList;
