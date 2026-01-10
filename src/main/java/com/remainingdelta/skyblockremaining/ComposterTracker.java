@@ -24,7 +24,8 @@ public class ComposterTracker extends AbstractTodoItem {
   private ComposterState cachedState;
   private static final Pattern composterPattern = Pattern.compile(
       "(Organic Matter|Fuel):\\s*([\\d\\.]+)([kM]?)");
-
+  private static final Pattern timeLeftPattern = Pattern.compile(
+      "Time Left:\\s*(\\d+)m\\s*(\\d+)s");
   private static final double BASE_MATTER_COST = 4000.0;
   private static final double BASE_FUEL_COST = 2000.0;
   private static final double BASE_TIME = 600.0;
@@ -76,9 +77,14 @@ public class ComposterTracker extends AbstractTodoItem {
     Collection<NetworkPlayerInfo> tabListData = minecraft.getNetHandler().getPlayerInfoMap();
     boolean foundData = false;
     boolean currentPassInactive = false;
+
     double previousOrganic = this.cachedState.organicMatter;
     double previousFuel = this.cachedState.fuel;
     boolean previousInactive = this.cachedState.isInactive;
+    long previousCycleTime = this.cachedState.cycleTimeSeconds;
+
+    long foundCycleTime = -1;
+
     for (NetworkPlayerInfo playerInfo : tabListData) {
       IChatComponent displayName = playerInfo.getDisplayName();
       if (displayName == null) {
@@ -103,12 +109,24 @@ public class ComposterTracker extends AbstractTodoItem {
           foundData = true;
         }
       }
+
+      Matcher timeMatcher = timeLeftPattern.matcher(text);
+      if (timeMatcher.find()) {
+        int mins = Integer.parseInt(timeMatcher.group(1));
+        int secs = Integer.parseInt(timeMatcher.group(2));
+        foundCycleTime = (mins * 60L) + secs;
+        foundData = true;
+      }
     }
     if (foundData) {
       this.cachedState.isInactive = currentPassInactive;
+      if (foundCycleTime != -1) {
+        this.cachedState.cycleTimeSeconds = foundCycleTime;
+      }
       if (this.cachedState.organicMatter != previousOrganic
           || this.cachedState.fuel != previousFuel
-          || this.cachedState.isInactive != previousInactive) {
+          || this.cachedState.isInactive != previousInactive
+          || this.cachedState.cycleTimeSeconds != previousCycleTime) {
         this.cachedState.lastTimestamp = System.currentTimeMillis();
         ComposterDataManager.instance.save(this.cachedState);
         System.out.println("COMP_TEST: Updated! Time Remaining: " + calculateTimeRemaining(this.cachedState));
@@ -139,9 +157,7 @@ public class ComposterTracker extends AbstractTodoItem {
   }
 
   private String calculateTimeRemaining(ComposterState state) {
-    if (state.isInactive) {
-      return "INACTIVE";
-    }
+    if (state.isInactive) return "INACTIVE";
 
     double speedMultiplier = 1 + (state.speedLevel * 0.2);
     double costReductionMultiplier = 1 - (state.costLevel * 0.01);
@@ -150,13 +166,21 @@ public class ComposterTracker extends AbstractTodoItem {
     double matterCost = BASE_MATTER_COST * costReductionMultiplier;
     double fuelCost = BASE_FUEL_COST * costReductionMultiplier;
 
-    double totalMatterTime = (state.organicMatter / matterCost) * timePerCompost;
-    double totalFuelTime = (state.fuel / fuelCost) * timePerCompost;
+    int maxMatterCycles = (int) (state.organicMatter / matterCost);
+    int maxFuelCycles = (int) (state.fuel / fuelCost);
+    int totalFullCycles = Math.min(maxMatterCycles, maxFuelCycles);
 
-    double minTime = Math.min(totalMatterTime, totalFuelTime);
+    double totalTimeSeconds;
+
+    if (state.cycleTimeSeconds > 0) {
+      double futureTime = Math.max(0, totalFullCycles - 1) * timePerCompost;
+      totalTimeSeconds = state.cycleTimeSeconds + futureTime;
+    } else {
+      totalTimeSeconds = totalFullCycles * timePerCompost;
+    }
 
     double timeElapsed = (System.currentTimeMillis() - state.lastTimestamp) / 1000.0;
-    return formatTime(minTime - timeElapsed);
+    return formatTime(totalTimeSeconds - timeElapsed);
   }
 
   private void fetchComposterData() {

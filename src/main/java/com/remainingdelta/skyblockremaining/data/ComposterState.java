@@ -13,6 +13,8 @@ public class ComposterState {
   public int speedLevel = 0;
   public int costLevel = 0;
   public boolean isInactive = false;
+  public long cycleTimeSeconds = 0;
+
 
   /**
    * Updates speedLevel and costLevel based on passed in composter data.
