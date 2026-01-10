@@ -1,6 +1,7 @@
 package com.remainingdelta.skyblockremaining;
 
 import com.remainingdelta.skyblockremaining.commands.TestCommand;
+import com.remainingdelta.skyblockremaining.gui.HudRenderer;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.util.ChatComponentText;
@@ -28,6 +29,7 @@ public class SkyblockRemaining {
     ComposterTracker composter = new ComposterTracker();
     todoList.add(composter);
     MinecraftForge.EVENT_BUS.register(composter);
+    MinecraftForge.EVENT_BUS.register(new HudRenderer());
     System.out.println("Skyblock Remaining initialized!");
   }
 
