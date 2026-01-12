@@ -15,6 +15,9 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.List;
 
+/**
+ * HUD render for todo overlay.
+ */
 public class HudRenderer extends Gui {
 
   private static final int START_X = 10;
@@ -27,6 +30,22 @@ public class HudRenderer extends Gui {
   private static final int ICON_SIZE = 16;
   private static final int ICON_PADDING = 4;
 
+  private final List<TodoItem> todoItems;
+
+  /**
+   * Constructor that accepts the list of items to draw.
+   *
+   * @param todoItems The shared list of tracker items.
+   */
+  public HudRenderer(List<TodoItem> todoItems) {
+    this.todoItems = todoItems;
+  }
+
+  /**
+   * Render todo overlay.
+   *
+   * @param event gives information about what Minecraft is currently drawing
+   */
   @SubscribeEvent
   public void onRenderGui(RenderGameOverlayEvent.Post event) {
     if (event.type != RenderGameOverlayEvent.ElementType.TEXT) {
@@ -67,8 +86,8 @@ public class HudRenderer extends Gui {
 
     for (TodoItem item : list) {
       ResourceLocation icon = item.getIcon();
-
       if (icon != null) {
+        GL11.glEnable(GL11.GL_BLEND);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 
         mc.getTextureManager().bindTexture(icon);

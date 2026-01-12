@@ -1,18 +1,26 @@
 package com.remainingdelta.skyblockremaining;
 
-import com.remainingdelta.skyblockremaining.commands.TestCommand;
+import com.remainingdelta.skyblockremaining.api.ApiKeyManager;
+import com.remainingdelta.skyblockremaining.api.HypixelApi;
+import com.remainingdelta.skyblockremaining.api.IApiKeyManager;
+import com.remainingdelta.skyblockremaining.api.IHypixelApi;
+import com.remainingdelta.skyblockremaining.data.ComposterDataManager;
+import com.remainingdelta.skyblockremaining.data.ComposterState;
+import com.remainingdelta.skyblockremaining.data.IDataManager;
 import com.remainingdelta.skyblockremaining.gui.HudRenderer;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 
+/**
+ * The main entry point for the Skyblock Remaining mod.
+ */
 @Mod(modid = SkyblockRemaining.MODID, version = SkyblockRemaining.VERSION)
 public class SkyblockRemaining {
 
@@ -22,17 +30,34 @@ public class SkyblockRemaining {
   public static boolean enabled = true;
   public static List<TodoItem> todoList = new ArrayList<TodoItem>();
 
+  /**
+   * The main initialization event for the mod.
+   *
+   * @param event The FML initialization event.
+   */
   @Mod.EventHandler
   public void init(FMLInitializationEvent event) {
     MinecraftForge.EVENT_BUS.register(this);
-    ClientCommandHandler.instance.registerCommand(new TestCommand());
-    ComposterTracker composter = new ComposterTracker();
+    IApiKeyManager keyManager = new ApiKeyManager();
+    IHypixelApi apiService = new HypixelApi(keyManager);
+    IDataManager<ComposterState> dataManager = new ComposterDataManager();
+    ComposterTracker composter = new ComposterTracker(keyManager, apiService, dataManager);
     todoList.add(composter);
     MinecraftForge.EVENT_BUS.register(composter);
-    MinecraftForge.EVENT_BUS.register(new HudRenderer());
+    MinecraftForge.EVENT_BUS.register(new HudRenderer(todoList));
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      System.out.println("Stopping SkyblockRemaining...");
+      composter.shutdown();
+    }));
     System.out.println("Skyblock Remaining initialized!");
   }
 
+  /**
+   * Triggered when the player logs into the server. Sends a welcome message to the chat to confirm
+   * to the user that the mod has loaded successfully and is active.
+   *
+   * @param event The player login event.
+   */
   @SubscribeEvent
   public void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
     event.player.addChatMessage(

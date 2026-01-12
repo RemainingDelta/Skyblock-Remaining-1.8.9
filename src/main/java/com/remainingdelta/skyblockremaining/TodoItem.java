@@ -3,7 +3,7 @@ package com.remainingdelta.skyblockremaining;
 import net.minecraft.util.ResourceLocation;
 
 /**
- * Interface for the todo item.
+ * Interface for the todo item for the todo overlay.
  */
 public interface TodoItem {
 
@@ -22,7 +22,7 @@ public interface TodoItem {
   public String getStatus();
 
   /**
-   * Returns the icon of the todo item
+   * Returns the icon location of the todo item.
    *
    * @return the icon of the todo item
    */

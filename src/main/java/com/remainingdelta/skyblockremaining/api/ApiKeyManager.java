@@ -8,19 +8,22 @@ import java.util.Properties;
  * Manages the API keys including hypixel api key, and minecraft UUID.
  * Load the env when the class is loaded.
  */
-public class ApiKeyManager {
-  private static String hypixelApiKey;
-  private static String uuid;
+public class ApiKeyManager implements IApiKeyManager {
+  private String hypixelApiKey;
+  private String uuid;
 
 
-  static {
-    loadEnv();
+  /**
+   * Upon creating a ApiKeyManager object, the env is loaded.
+   */
+  public ApiKeyManager() {
+    this.loadEnv();
   }
 
   /**
    * Loads the .env file to the fields.
    */
-  private static void loadEnv() {
+  private void loadEnv() {
     File envFile = new File(".env");
     if (!envFile.exists()) {
       envFile = new File("../.env");
@@ -46,7 +49,8 @@ public class ApiKeyManager {
    *
    * @return the Hypixel API key
    */
-  public static String getHypixelApiKey() {
+  @Override
+  public String getHypixelApiKey() {
     return hypixelApiKey;
   }
 
@@ -55,7 +59,8 @@ public class ApiKeyManager {
    *
    * @return the uuid
    */
-  public static String getUuid() {
+  @Override
+  public String getUuid() {
     return uuid;
   }
 }

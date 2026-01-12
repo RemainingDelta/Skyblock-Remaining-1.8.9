@@ -3,7 +3,7 @@ package com.remainingdelta.skyblockremaining;
 import net.minecraft.util.ResourceLocation;
 
 /**
- * Represents a todo item in skyblock.
+ * Represents an abstract todo item in skyblock.
  */
 public abstract class AbstractTodoItem implements TodoItem {
   protected String name;
@@ -29,6 +29,11 @@ public abstract class AbstractTodoItem implements TodoItem {
     return this.name;
   }
 
+  /**
+   * Returns the icon location of the todo item.
+   *
+   * @return the icon of the todo item
+   */
   @Override
   public ResourceLocation getIcon() {
     return this.icon;

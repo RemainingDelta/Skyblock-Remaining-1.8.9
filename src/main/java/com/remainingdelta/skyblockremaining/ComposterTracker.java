@@ -1,7 +1,10 @@
 package com.remainingdelta.skyblockremaining;
 
-import com.remainingdelta.skyblockremaining.data.ComposterDataManager;
+import com.google.gson.JsonObject;
+import com.remainingdelta.skyblockremaining.api.IApiKeyManager;
+import com.remainingdelta.skyblockremaining.api.IHypixelApi;
 import com.remainingdelta.skyblockremaining.data.ComposterState;
+import com.remainingdelta.skyblockremaining.data.IDataManager;
 import java.util.Collection;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -17,30 +20,56 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 /**
- * Tracker for the composter for the todo menu.
+ * Tracker for the composter for the todo menu. Calculates the time left for the composter,
+ * otherwise is "INACTIVE".
  */
 public class ComposterTracker extends AbstractTodoItem {
-  private int tickCounter = 0;
-  public static ComposterTracker instance;
-  private ComposterState cachedState;
-  private static final Pattern composterPattern = Pattern.compile(
+
+  /* Constants */
+  private static final Pattern COMPOSTER_PATTERN = Pattern.compile(
       "(Organic Matter|Fuel):\\s*([\\d\\.]+)([kM]?)");
-  private static final Pattern timeLeftPattern = Pattern.compile(
+  private static final Pattern TIME_LEFT_PATTERN = Pattern.compile(
       "Time Left:\\s*(\\d+)m\\s*(\\d+)s");
   private static final double BASE_MATTER_COST = 4000.0;
   private static final double BASE_FUEL_COST = 2000.0;
   private static final double BASE_TIME = 600.0;
-  private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+  /* Instance Variables */
+  public static ComposterTracker instance;
+  private volatile ComposterState cachedState;
+  private int tickCounter = 0;
+
+  private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(
+      1, runnable -> {
+    Thread t = new Thread(runnable);
+    t.setDaemon(true);
+    t.setName("Composter-Tracker-Thread");
+    return t;
+  });
   private long lastApiFetchTime = 0;
+
+  private final IApiKeyManager apiKeyManager;
+  private final IHypixelApi apiService;
+  private final IDataManager<ComposterState> dataManager;
 
 
   /**
-   * Constructor of Composter Tracker which takes in nothing.
+   * Constructs a new ComposterTracker with the required dependencies. Initializes the tracker,
+   * loads the saved state from disk,and starts a background scheduler to fetch data from the
+   * Hypixel API every 5 minutes.
+   *
+   * @param apiKeyManager The manager responsible for providing the Hypixel API key
+   * @param apiService    The service used to make network requests to the Hypixel API
+   * @param dataManager   The manager used to save and load the composter state from the disk
    */
-  public ComposterTracker() {
+  public ComposterTracker(IApiKeyManager apiKeyManager, IHypixelApi apiService,
+                          IDataManager<ComposterState> dataManager) {
     super("Composter", "textures/icons/composter.png");
+    this.apiKeyManager = apiKeyManager;
+    this.apiService = apiService;
+    this.dataManager = dataManager;
     instance = this;
-    this.cachedState = ComposterDataManager.instance.load();
+    this.cachedState = dataManager.load();
     this.scheduler.scheduleAtFixedRate(this::fetchComposterData, 5, 5, TimeUnit.MINUTES);
   }
 
@@ -54,6 +83,12 @@ public class ComposterTracker extends AbstractTodoItem {
     return calculateTimeRemaining(this.cachedState);
   }
 
+  /**
+   * Called on every client tick. Handles the periodic scraping of the tab list to update composter
+   * data.
+   *
+   * @param event The client tick event provided by Forge.
+   */
   @SubscribeEvent
   public void onTick(TickEvent.ClientTickEvent event) {
     if (event.phase != TickEvent.Phase.END) {
@@ -64,9 +99,6 @@ public class ComposterTracker extends AbstractTodoItem {
       return;
     }
     this.tickCounter = 0;
-    System.out.println("[DEBUG] Current Status: " + calculateTimeRemaining(this.cachedState)
-        + " | Matter: " + this.cachedState.organicMatter
-        + " | Fuel: " + this.cachedState.fuel);
     Minecraft minecraft = Minecraft.getMinecraft();
     if (minecraft.thePlayer == null || minecraft.theWorld == null) {
       return;
@@ -74,6 +106,12 @@ public class ComposterTracker extends AbstractTodoItem {
     this.parseTabList(minecraft);
   }
 
+  /**
+   * Scans the current tab list to extract Composter data such as Organic Matter, Fuel, and Time
+   * Left.
+   *
+   * @param minecraft The Minecraft client instance used to access the network handler.
+   */
   private void parseTabList(Minecraft minecraft) {
     Collection<NetworkPlayerInfo> tabListData = minecraft.getNetHandler().getPlayerInfoMap();
     boolean foundData = false;
@@ -96,7 +134,7 @@ public class ComposterTracker extends AbstractTodoItem {
         currentPassInactive = true;
         foundData = true;
       }
-      Matcher matcher = composterPattern.matcher(text);
+      Matcher matcher = COMPOSTER_PATTERN.matcher(text);
       if (matcher.find()) {
         String type = matcher.group(1);
         String numberStr = matcher.group(2);
@@ -111,7 +149,7 @@ public class ComposterTracker extends AbstractTodoItem {
         }
       }
 
-      Matcher timeMatcher = timeLeftPattern.matcher(text);
+      Matcher timeMatcher = TIME_LEFT_PATTERN.matcher(text);
       if (timeMatcher.find()) {
         int mins = Integer.parseInt(timeMatcher.group(1));
         int secs = Integer.parseInt(timeMatcher.group(2));
@@ -129,12 +167,19 @@ public class ComposterTracker extends AbstractTodoItem {
           || this.cachedState.isInactive != previousInactive
           || this.cachedState.cycleTimeSeconds != previousCycleTime) {
         this.cachedState.lastTimestamp = System.currentTimeMillis();
-        ComposterDataManager.instance.save(this.cachedState);
+        this.dataManager.save(this.cachedState);
         System.out.println("COMP_TEST: Updated! Time Remaining: " + calculateTimeRemaining(this.cachedState));
       }
     }
   }
 
+  /**
+   * Parse the fuel and matter values accounting for k or M to return final amount.
+   *
+   * @param numberStr number part of the string
+   * @param suffix letter part of the string
+   * @return the final amount based on the number and suffix
+   */
   private double parseValue(String numberStr, String suffix) {
     try {
       double val = Double.parseDouble(numberStr);
@@ -148,6 +193,12 @@ public class ComposterTracker extends AbstractTodoItem {
     }
   }
 
+  /**
+   * Formats a duration in seconds into a human-readable string (e.g., "1h05m")
+   *
+   * @param totalSeconds seconds to format
+   * @return formated time as a string
+   */
   private String formatTime(double totalSeconds) {
     if (totalSeconds <= 0) {
       return EnumChatFormatting.RED + "INACTIVE";
@@ -157,6 +208,12 @@ public class ComposterTracker extends AbstractTodoItem {
     return EnumChatFormatting.WHITE + String.format("%dh%02dm", hours, minutes);
   }
 
+  /**
+   * Calculates the remaining time for the composter based on the current state.
+   *
+   * @param state of the composter
+   * @return time left as a string or INACTIVE if inactive.
+   */
   private String calculateTimeRemaining(ComposterState state) {
     if (state.isInactive) {
       return EnumChatFormatting.RED + "INACTIVE";
@@ -186,36 +243,44 @@ public class ComposterTracker extends AbstractTodoItem {
     return formatTime(totalTimeSeconds - timeElapsed);
   }
 
+  /**
+   * Fetches the composter data, updating the upgrade levels with the given json.
+   */
   private void fetchComposterData() {
     if (System.currentTimeMillis() - lastApiFetchTime < 15000) {
       return;
     }
     lastApiFetchTime = System.currentTimeMillis();
-    new Thread(() -> {
-      try {
-        String key = com.remainingdelta.skyblockremaining.api.ApiKeyManager.getHypixelApiKey();
-        if (key == null || key.isEmpty()) {
-          return;
-        }
-        com.google.gson.JsonObject gardenData =
-            com.remainingdelta.skyblockremaining.api.HypixelApi.getGardenData();
-        if (gardenData != null && gardenData.has("composter_data")) {
-          this.cachedState.updateUpgradesFromApi(gardenData.getAsJsonObject(
-              "composter_data"));
-          System.out.println("[SkyblockRemaining] API Sync Complete: "
-              + this.cachedState.toString());
-          ComposterDataManager.instance.save(this.cachedState);
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
+    try {
+      String key = this.apiKeyManager.getHypixelApiKey();
+      if (key == null || key.isEmpty()) return;
+      JsonObject gardenData = this.apiService.getGardenData();
+      if (gardenData != null && gardenData.has("composter_data")) {
+        this.cachedState.updateUpgradesFromApi(gardenData.getAsJsonObject("composter_data"));
+        // System.out.println("[SkyblockRemaining] API Sync Complete");
+        this.dataManager.save(this.cachedState);
       }
-    }).start();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
+  /**
+   * Detects when the player joins a world and triggers an immediate API sync.
+   *
+   * @param event The entity join event provided by Forge.
+   */
   @SubscribeEvent
   public void onWorldJoin(EntityJoinWorldEvent event) {
     if (event.entity == Minecraft.getMinecraft().thePlayer) {
-      fetchComposterData();
+      this.scheduler.submit(this::fetchComposterData);
     }
+  }
+
+  /**
+   * Called on mod shutdown
+   */
+  public void shutdown() {
+    this.scheduler.shutdown();
   }
 }
