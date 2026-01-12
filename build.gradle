@@ -19,8 +19,8 @@ apply plugin: 'org.spongepowered.mixin'
 
 //TODO: Change the version, group, and archivesBaseName to your own.
 version = "1.0" // The version number of your mod.
-group = "com.example" // This is the group of the mod (usually domain or your name -> at.manuthebyte)
-archivesBaseName = "examplemod" // This is the name of the jar that is generated.
+group = "com.remainingdelta" // This is the group of the mod (usually domain or your name -> at.manuthebyte)
+archivesBaseName = "skyblockremaining" // This is the name of the jar that is generated.
 
 sourceCompatibility = targetCompatibility = 1.8 // Java version to compile for.
 compileJava.options.encoding = "UTF-8" // Make sure that the encoding is set to UTF-8, so we have no encoding issues.
@@ -149,13 +149,8 @@ reobf {
 //TODO: Add your own MixinConfig(s)
 jar {
     manifest.attributes(
-        "FMLCorePlugin" : "com.example.examplemod.mixins.MixinLoader",
-        "ForceLoadAsMod": true,
-        "TweakOrder": 0,
-        "ModSide": "CLIENT",
-        'FMLCorePluginContainsFMLMod': true,
-        'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
-        'MixinConfigs': 'mixins.examplemod.json'
+            "ForceLoadAsMod": true,
+            "ModSide": "CLIENT"
     )
 }
 
