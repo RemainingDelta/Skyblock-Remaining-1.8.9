@@ -1,13 +1,13 @@
 [
 {
-  "modid": "examplemod",
-  "name": "ExampleMod",
-  "description": "Nice mod",
+  "modid": "skyblockremaining",
+  "name": "Skyblock Remaining",
+  "description": "My custom Skyblock mod.",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",
   "updateUrl": "",
-  "authorList": ["manuthebyte", "ExampleModDev"],
+  "authorList": ["RemainingDelta"],
   "credits": "",
   "logoFile": "",
   "screenshots": [],

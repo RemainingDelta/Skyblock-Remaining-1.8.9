@@ -30,7 +30,7 @@ minecraft {
     runDir = "run" // Where to put the forge run data (mods, configs, etc.), in a normal minecraft installation this is .minecraft
     mappings = "stable_22" // The mappings for 1.8.9
     makeObfSourceJar = false // Disables the creation of a source jar
-    clientJvmArgs = ["-Ddevauth.enabled=true", "-Ddevauth.account=main"]
+//    clientJvmArgs = ["-Ddevauth.enabled=true", "-Ddevauth.account=main"]
 }
 
 // This is the configuration for the shadow plugin, which is used to add libraries to the jar.
