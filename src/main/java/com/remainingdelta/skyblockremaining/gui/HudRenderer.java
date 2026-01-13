@@ -20,9 +20,6 @@ import java.util.List;
  */
 public class HudRenderer extends Gui {
 
-  private static final int START_X = 10;
-  private static final int START_Y = 10;
-
   private static final int BACKGROUND_COLOR = 0x90202020;
   private static final int TITLE_COLOR = 0xFF55FFFF;
   private static final int VALUE_COLOR = 0xFFFFFFFF;
@@ -48,55 +45,56 @@ public class HudRenderer extends Gui {
    */
   @SubscribeEvent
   public void onRenderGui(RenderGameOverlayEvent.Post event) {
-    if (event.type != RenderGameOverlayEvent.ElementType.TEXT) {
-      return;
-    }
-
-    if (!isOnSkyblock()) {
-      return;
-    }
+    if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return;
+    if (!isOnSkyblock()) return;
 
     Minecraft mc = Minecraft.getMinecraft();
     List<TodoItem> list = SkyblockRemaining.todoList;
     if (list.isEmpty()) return;
 
     FontRenderer fr = mc.fontRendererObj;
-
     int padding = 5;
     int lineHeight = Math.max(fr.FONT_HEIGHT, ICON_SIZE) + 4;
 
-    int boxHeight = (list.size() * lineHeight) + (padding * 2);
     int boxWidth = 0;
+    int enabledCount = 0;
 
     for (TodoItem item : list) {
+      if (!item.isEnabled()) continue;
+
+      enabledCount++;
+
       String text = item.getName() + ": " + item.getStatus();
-      int textWidth = fr.getStringWidth(text);
-
-      int totalWidth = ICON_SIZE + ICON_PADDING + textWidth;
-
-      if (totalWidth > boxWidth) {
-        boxWidth = totalWidth;
-      }
+      int totalWidth = ICON_SIZE + ICON_PADDING + fr.getStringWidth(text);
+      if (totalWidth > boxWidth) boxWidth = totalWidth;
     }
+
+    if (enabledCount == 0) {
+      return;
+    }
+
     boxWidth += (padding * 2);
+    int boxHeight = (enabledCount * lineHeight) + (padding * 2);
 
-    drawRect(START_X, START_Y, START_X + boxWidth, START_Y + boxHeight, BACKGROUND_COLOR);
+    int startX = SkyblockRemaining.guiX;
+    int startY = SkyblockRemaining.guiY;
 
-    int currentY = START_Y + padding;
+    drawRect(startX, startY, startX + boxWidth, startY + boxHeight, BACKGROUND_COLOR);
+
+    int currentY = startY + padding;
 
     for (TodoItem item : list) {
+      if (!item.isEnabled()) continue;
+
       ResourceLocation icon = item.getIcon();
       if (icon != null) {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-
         mc.getTextureManager().bindTexture(icon);
-
-        Gui.drawModalRectWithCustomSizedTexture(START_X + padding, currentY, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
+        Gui.drawModalRectWithCustomSizedTexture(startX + padding, currentY, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
       }
 
-      int textStartX = START_X + padding + ICON_SIZE + ICON_PADDING;
-
+      int textStartX = startX + padding + ICON_SIZE + ICON_PADDING;
       int textOffsetY = (lineHeight - fr.FONT_HEIGHT) / 2;
       int textY = currentY + textOffsetY;
 
@@ -104,9 +102,7 @@ public class HudRenderer extends Gui {
       String status = item.getStatus();
 
       fr.drawString(name, textStartX, textY, TITLE_COLOR);
-
-      int nameWidth = fr.getStringWidth(name);
-      fr.drawString(status, textStartX + nameWidth, textY, VALUE_COLOR);
+      fr.drawString(status, textStartX + fr.getStringWidth(name), textY, VALUE_COLOR);
 
       currentY += lineHeight;
     }

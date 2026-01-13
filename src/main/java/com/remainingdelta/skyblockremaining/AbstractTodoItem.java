@@ -8,6 +8,7 @@ import net.minecraft.util.ResourceLocation;
 public abstract class AbstractTodoItem implements TodoItem {
   protected String name;
   protected ResourceLocation icon;
+  protected boolean enabled;
 
   /**
    * Constructor of TodoItem which takes in a name.
@@ -17,6 +18,7 @@ public abstract class AbstractTodoItem implements TodoItem {
   public AbstractTodoItem(String name, String iconLocation) {
     this.name = name;
     this.icon = new ResourceLocation("skyblockremaining", iconLocation);
+    this.enabled = true;
   }
 
   /**
@@ -37,6 +39,26 @@ public abstract class AbstractTodoItem implements TodoItem {
   @Override
   public ResourceLocation getIcon() {
     return this.icon;
+  }
+
+  /**
+   * Sets todoItem as enabled to display.
+   *
+   * @param display sets enabled to this value
+   */
+  @Override
+  public void setEnabled(boolean display) {
+    this.enabled = display;
+  }
+
+  /**
+   * Checks if todoItem is enabled.
+   *
+   * @return true if todoItem is enabled, false otherwise
+   */
+  @Override
+  public boolean isEnabled() {
+    return this.enabled;
   }
 
 }

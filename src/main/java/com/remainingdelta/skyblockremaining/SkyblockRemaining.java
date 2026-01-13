@@ -4,6 +4,7 @@ import com.remainingdelta.skyblockremaining.api.ApiKeyManager;
 import com.remainingdelta.skyblockremaining.api.HypixelApi;
 import com.remainingdelta.skyblockremaining.api.IApiKeyManager;
 import com.remainingdelta.skyblockremaining.api.IHypixelApi;
+import com.remainingdelta.skyblockremaining.commands.SBRCommand;
 import com.remainingdelta.skyblockremaining.data.ComposterDataManager;
 import com.remainingdelta.skyblockremaining.data.ComposterState;
 import com.remainingdelta.skyblockremaining.data.IDataManager;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -30,6 +32,9 @@ public class SkyblockRemaining {
   public static boolean enabled = true;
   public static List<TodoItem> todoList = new ArrayList<TodoItem>();
 
+  public static int guiX = 10;
+  public static int guiY = 10;
+
   /**
    * The main initialization event for the mod.
    *
@@ -45,6 +50,7 @@ public class SkyblockRemaining {
     todoList.add(composter);
     MinecraftForge.EVENT_BUS.register(composter);
     MinecraftForge.EVENT_BUS.register(new HudRenderer(todoList));
+    ClientCommandHandler.instance.registerCommand(new SBRCommand());
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
       System.out.println("Stopping SkyblockRemaining...");
       composter.shutdown();

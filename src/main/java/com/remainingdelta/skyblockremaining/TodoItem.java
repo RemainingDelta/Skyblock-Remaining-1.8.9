@@ -27,4 +27,19 @@ public interface TodoItem {
    * @return the icon of the todo item
    */
   ResourceLocation getIcon();
+
+  /**
+   * Sets todoItem as enabled to display.
+   *
+   * @param display sets enabled to this value
+   */
+  void setEnabled(boolean display);
+
+  /**
+   * Checks if todoItem is enabled.
+   *
+   * @return true if todoItem is enabled, false otherwise
+   */
+  boolean isEnabled();
+
 }

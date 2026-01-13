@@ -6,8 +6,9 @@ custom in-game 'To-Do List,' tracking status for the Composter, Aranya, etc. The
 client-side HUD elements like a coordinate display.
 
 Todo
-- [ ] Todo Item: Composter 
+- [x] Todo Item: Composter 
 - [ ] Todo Item: Aranya
 - [ ] Todo Item: Forge
 - [ ] Todo HUD Display
+- [ ] Config menu
 - [ ] Coords HUD Display
