@@ -5,10 +5,13 @@ import com.remainingdelta.skyblockremaining.api.HypixelApi;
 import com.remainingdelta.skyblockremaining.api.IApiKeyManager;
 import com.remainingdelta.skyblockremaining.api.IHypixelApi;
 import com.remainingdelta.skyblockremaining.commands.SBRCommand;
+import com.remainingdelta.skyblockremaining.config.ConfigManager;
+import com.remainingdelta.skyblockremaining.config.IConfigManager;
 import com.remainingdelta.skyblockremaining.data.ComposterDataManager;
 import com.remainingdelta.skyblockremaining.data.ComposterState;
 import com.remainingdelta.skyblockremaining.data.IDataManager;
 import com.remainingdelta.skyblockremaining.gui.HudRenderer;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.util.ChatComponentText;
@@ -32,6 +35,8 @@ public class SkyblockRemaining {
   public static boolean enabled = true;
   public static List<TodoItem> todoList = new ArrayList<TodoItem>();
 
+  public static IConfigManager configManager;
+
   public static int guiX = 10;
   public static int guiY = 10;
 
@@ -43,11 +48,15 @@ public class SkyblockRemaining {
   @Mod.EventHandler
   public void init(FMLInitializationEvent event) {
     MinecraftForge.EVENT_BUS.register(this);
-    IApiKeyManager keyManager = new ApiKeyManager();
+    File minecraftDir = net.minecraft.client.Minecraft.getMinecraft().mcDataDir;
+    configManager = new ConfigManager(minecraftDir);
+    File modConfigDir = configManager.getConfigDirectory();
+    IApiKeyManager keyManager = new ApiKeyManager(modConfigDir);
     IHypixelApi apiService = new HypixelApi(keyManager);
-    IDataManager<ComposterState> dataManager = new ComposterDataManager();
+    IDataManager<ComposterState> dataManager = new ComposterDataManager(modConfigDir);
     ComposterTracker composter = new ComposterTracker(keyManager, apiService, dataManager);
     todoList.add(composter);
+    configManager.loadConfig();
     MinecraftForge.EVENT_BUS.register(composter);
     MinecraftForge.EVENT_BUS.register(new HudRenderer(todoList));
     ClientCommandHandler.instance.registerCommand(new SBRCommand());

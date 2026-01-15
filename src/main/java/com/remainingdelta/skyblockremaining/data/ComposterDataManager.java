@@ -18,15 +18,12 @@ public class ComposterDataManager implements IDataManager<ComposterState> {
   private final Gson gson;
 
   /**
-   * Composter Data manager constructor which finds or creates a file for saving/loading composter
-   * data.
+   * Constructor that uses the provided directory to save the composter.json file.
+   *
+   * @param configDir The mod's specific config directory (config/skyblock-remaining/).
    */
-  public ComposterDataManager() {
-    File configDir = new File(Minecraft.getMinecraft().mcDataDir, "config");
-    if (!configDir.exists()) {
-      configDir.mkdirs();
-    }
-    this.composterFile = new File(configDir, "skyblock_composter.json");
+  public ComposterDataManager(File configDir) {
+    this.composterFile = new File(configDir, "composter.json");
     this.gson = new GsonBuilder().setPrettyPrinting().create();
   }
 

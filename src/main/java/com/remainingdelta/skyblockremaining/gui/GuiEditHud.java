@@ -79,6 +79,17 @@ public class GuiEditHud extends GuiScreen {
   }
 
   /**
+   * Called when the screen is unloaded (closed). Saves the new position to disk.
+   */
+  @Override
+  public void onGuiClosed() {
+    if (SkyblockRemaining.configManager != null) {
+      SkyblockRemaining.configManager.saveConfig();
+    }
+    super.onGuiClosed();
+  }
+
+  /**
    * Handles mouse clicks to detect if the user clicked inside the HUD box to start dragging.
    *
    * @param mouseX      The X coordinate of the mouse click.

@@ -10,5 +10,6 @@ Todo
 - [ ] Todo Item: Aranya
 - [ ] Todo Item: Forge
 - [ ] Todo HUD Display
-- [ ] Config menu
+- [x] Config menu
 - [ ] Coords HUD Display
+- [ ] Commands Hotkey with toggle on/off

@@ -103,4 +103,15 @@ public class SBRMenuGui extends GuiScreen {
   public boolean doesGuiPauseGame() {
     return false;
   }
+
+  /**
+   * Called when the screen is unloaded (closed). Saves config to disk.
+   */
+  @Override
+  public void onGuiClosed() {
+    if (SkyblockRemaining.configManager != null) {
+      SkyblockRemaining.configManager.saveConfig();
+    }
+    super.onGuiClosed();
+  }
 }
