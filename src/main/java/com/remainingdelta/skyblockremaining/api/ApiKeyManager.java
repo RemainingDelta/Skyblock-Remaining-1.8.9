@@ -90,6 +90,31 @@ public class ApiKeyManager implements IApiKeyManager {
   }
 
   /**
+   * Sets the Hypixel API key.
+   *
+   * @param key the Hypixel API key
+   */
+  @Override
+  public void setApiKey(String key) {
+    this.hypixelApiKey = key;
+    this.saveKeys();
+  }
+
+  /**
+   * Saves the current keys to the keys.json file.
+   */
+  private void saveKeys() {
+    KeyData data = new KeyData();
+    data.hypixelApiKey = this.hypixelApiKey;
+    data.uuid = this.uuid;
+    try (Writer writer = new FileWriter(this.keyFile)) {
+      GSON.toJson(data, writer);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
    * Internal class to represent the JSON structure.
    */
   private static class KeyData {

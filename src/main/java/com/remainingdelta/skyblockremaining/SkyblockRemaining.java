@@ -4,6 +4,7 @@ import com.remainingdelta.skyblockremaining.api.ApiKeyManager;
 import com.remainingdelta.skyblockremaining.api.HypixelApi;
 import com.remainingdelta.skyblockremaining.api.IApiKeyManager;
 import com.remainingdelta.skyblockremaining.api.IHypixelApi;
+import com.remainingdelta.skyblockremaining.commands.CommandApiKey;
 import com.remainingdelta.skyblockremaining.commands.SBRCommand;
 import com.remainingdelta.skyblockremaining.config.ConfigManager;
 import com.remainingdelta.skyblockremaining.config.IConfigManager;
@@ -36,6 +37,7 @@ public class SkyblockRemaining {
   public static List<TodoItem> todoList = new ArrayList<TodoItem>();
 
   public static IConfigManager configManager;
+  public static IApiKeyManager keyManager;
 
   public static int guiX = 10;
   public static int guiY = 10;
@@ -51,7 +53,7 @@ public class SkyblockRemaining {
     File minecraftDir = net.minecraft.client.Minecraft.getMinecraft().mcDataDir;
     configManager = new ConfigManager(minecraftDir);
     File modConfigDir = configManager.getConfigDirectory();
-    IApiKeyManager keyManager = new ApiKeyManager(modConfigDir);
+    keyManager = new ApiKeyManager(modConfigDir);
     IHypixelApi apiService = new HypixelApi(keyManager);
     IDataManager<ComposterState> dataManager = new ComposterDataManager(modConfigDir);
     ComposterTracker composter = new ComposterTracker(keyManager, apiService, dataManager);
@@ -60,9 +62,13 @@ public class SkyblockRemaining {
     MinecraftForge.EVENT_BUS.register(composter);
     MinecraftForge.EVENT_BUS.register(new HudRenderer(todoList));
     ClientCommandHandler.instance.registerCommand(new SBRCommand());
+    ClientCommandHandler.instance.registerCommand(new CommandApiKey());
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
       System.out.println("Stopping SkyblockRemaining...");
       composter.shutdown();
+      if (configManager != null) {
+        configManager.saveConfig();
+      }
     }));
     System.out.println("Skyblock Remaining initialized!");
   }
