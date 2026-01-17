@@ -1,6 +1,7 @@
 package com.remainingdelta.skyblockremaining.commands;
 
 import com.remainingdelta.skyblockremaining.SkyblockRemaining;
+import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -54,12 +55,14 @@ public class CommandApiKey extends CommandBase {
     String apikey = args[0];
     if (SkyblockRemaining.keyManager != null) {
       SkyblockRemaining.keyManager.setApiKey(apikey);
+      SkyblockRemaining.keyManager.setUuid(Minecraft.getMinecraft().getSession().getPlayerID());
       sender.addChatMessage(new ChatComponentText(
           EnumChatFormatting.GOLD + "[SkyblockRemaining] " +
-              EnumChatFormatting.GREEN + "API Key updated successfully!"
+              EnumChatFormatting.GREEN + "API Key and UUID updated successfully!"
       ));
     } else {
-      sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Error: KeyManager is not initialized."));
+      sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Error: KeyManager "
+          +  "is not initialized."));
     }
   }
 }

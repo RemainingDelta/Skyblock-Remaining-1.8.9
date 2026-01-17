@@ -25,4 +25,11 @@ public interface IApiKeyManager {
    * @param key the Hypixel API key
    */
   void setApiKey(String key);
+
+  /**
+   * Sets the UUID.
+   *
+   * @param uuid the uuid
+   */
+  void setUuid(String uuid);
 }

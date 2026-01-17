@@ -101,6 +101,17 @@ public class ApiKeyManager implements IApiKeyManager {
   }
 
   /**
+   * Sets the UUID.
+   *
+   * @param uuid the uuid
+   */
+  @Override
+  public void setUuid(String uuid) {
+    this.uuid = uuid;
+    this.saveKeys();
+  }
+
+  /**
    * Saves the current keys to the keys.json file.
    */
   private void saveKeys() {
