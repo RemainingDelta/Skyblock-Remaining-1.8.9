@@ -28,9 +28,10 @@ save your Minecraft UUID when you run this command.
 
 ## Todo
 - [x] Todo Item: Composter 
-- [ ] Todo Item: Rift Split or Steal
+- [x] Todo Item: Rift Split or Steal
 - [ ] Todo Item: Aranya
 - [ ] Todo Item: Forge
+- [ ] Todo Item: Kat Timer
 - [ ] Todo HUD Display
 - [x] Config menu
 - [ ] Coords HUD Display

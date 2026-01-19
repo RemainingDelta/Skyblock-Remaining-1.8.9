@@ -11,6 +11,8 @@ import com.remainingdelta.skyblockremaining.config.IConfigManager;
 import com.remainingdelta.skyblockremaining.data.ComposterDataManager;
 import com.remainingdelta.skyblockremaining.data.ComposterState;
 import com.remainingdelta.skyblockremaining.data.IDataManager;
+import com.remainingdelta.skyblockremaining.data.SplitOrStealDataManager;
+import com.remainingdelta.skyblockremaining.data.SplitOrStealState;
 import com.remainingdelta.skyblockremaining.gui.HudRenderer;
 import java.io.File;
 import java.util.ArrayList;
@@ -31,7 +33,7 @@ import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 public class SkyblockRemaining {
 
   public static final String MODID = "skyblockremaining";
-  public static final String VERSION = "1.0";
+  public static final String VERSION = "1.1";
 
   public static boolean enabled = true;
   public static List<TodoItem> todoList = new ArrayList<TodoItem>();
@@ -55,11 +57,15 @@ public class SkyblockRemaining {
     File modConfigDir = configManager.getConfigDirectory();
     keyManager = new ApiKeyManager(modConfigDir);
     IHypixelApi apiService = new HypixelApi(keyManager);
-    IDataManager<ComposterState> dataManager = new ComposterDataManager(modConfigDir);
-    ComposterTracker composter = new ComposterTracker(keyManager, apiService, dataManager);
+    IDataManager<ComposterState> composterDataManager = new ComposterDataManager(modConfigDir);
+    ComposterTracker composter = new ComposterTracker(keyManager, apiService, composterDataManager);
+    IDataManager<SplitOrStealState> riftDataManager = new SplitOrStealDataManager(modConfigDir);
+    SplitOrStealTracker riftTracker = new SplitOrStealTracker(riftDataManager);
+    todoList.add(riftTracker);
     todoList.add(composter);
     configManager.loadConfig();
     MinecraftForge.EVENT_BUS.register(composter);
+    MinecraftForge.EVENT_BUS.register(riftTracker);
     MinecraftForge.EVENT_BUS.register(new HudRenderer(todoList));
     ClientCommandHandler.instance.registerCommand(new SBRCommand());
     ClientCommandHandler.instance.registerCommand(new CommandApiKey());
